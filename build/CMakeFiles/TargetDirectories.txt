@@ -1,0 +1,1 @@
+/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir
