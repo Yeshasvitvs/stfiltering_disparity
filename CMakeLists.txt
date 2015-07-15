@@ -15,6 +15,9 @@ PROJECT(${PROJECTNAME})
 # Find YARP.  Point the YARP_DIR environment variable at your build.
 find_package(YARP REQUIRED)
 
+#FIND ICUB
+find_package(ICUB REQUIRED)
+
 #find_package(ICUBcontrib REQUIRED)
 find_package(emorphLib)
 

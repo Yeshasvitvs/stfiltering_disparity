@@ -1,7 +1,9 @@
 FILE(REMOVE_RECURSE
-  "CMakeFiles/stfiltering.dir/main.cpp.o"
+  "CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o"
   "CMakeFiles/stfiltering.dir/stFilters.cpp.o"
+  "CMakeFiles/stfiltering.dir/icubInterface.cpp.o"
   "CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o"
+  "CMakeFiles/stfiltering.dir/main.cpp.o"
   "stfiltering.pdb"
   "stfiltering"
 )

@@ -96,10 +96,15 @@ CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o
  /usr/local/include/yarp/sig/Vector.h
  /usr/local/include/yarp/sig/all.h
  /usr/local/include/yarp/sig/api.h
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o
+ /home/yeshi/qt/stfiltering/icubInterface.cpp
 CMakeFiles/stfiltering.dir/main.cpp.o
  /home/yeshi/qt/stfiltering/eventHistoryBuffer.hpp
+ /home/yeshi/qt/stfiltering/icubInterface.hpp
  /home/yeshi/qt/stfiltering/main.cpp
  /home/yeshi/qt/stfiltering/stFilters.h
+ /home/yeshi/qt/stfiltering/stFiltersGPU.h
+ /usr/local/cuda-7.0/include/cuda.h
  /usr/local/include/iCub/emorph/all.h
  /usr/local/include/iCub/emorph/vBottle.h
  /usr/local/include/iCub/emorph/vCodec.h
@@ -108,6 +113,29 @@ CMakeFiles/stfiltering.dir/main.cpp.o
  /usr/local/include/yarp/conf/numeric.h
  /usr/local/include/yarp/conf/options.h
  /usr/local/include/yarp/conf/system.h
+ /usr/local/include/yarp/dev/CalibratorInterfaces.h
+ /usr/local/include/yarp/dev/ControlBoardInterfaces.h
+ /usr/local/include/yarp/dev/ControlBoardPid.h
+ /usr/local/include/yarp/dev/DeviceDriver.h
+ /usr/local/include/yarp/dev/Drivers.h
+ /usr/local/include/yarp/dev/IControlMode.h
+ /usr/local/include/yarp/dev/IControlMode2.h
+ /usr/local/include/yarp/dev/IEncoders.h
+ /usr/local/include/yarp/dev/IEncodersTimed.h
+ /usr/local/include/yarp/dev/IImpedanceControl.h
+ /usr/local/include/yarp/dev/IInteractionMode.h
+ /usr/local/include/yarp/dev/IMotor.h
+ /usr/local/include/yarp/dev/IMotorEncoders.h
+ /usr/local/include/yarp/dev/IOpenLoopControl.h
+ /usr/local/include/yarp/dev/IPositionControl.h
+ /usr/local/include/yarp/dev/IPositionControl2.h
+ /usr/local/include/yarp/dev/IPositionDirect.h
+ /usr/local/include/yarp/dev/IRemoteVariables.h
+ /usr/local/include/yarp/dev/ITorqueControl.h
+ /usr/local/include/yarp/dev/IVelocityControl.h
+ /usr/local/include/yarp/dev/IVelocityControl2.h
+ /usr/local/include/yarp/dev/PolyDriver.h
+ /usr/local/include/yarp/dev/api.h
  /usr/local/include/yarp/os/AbstractContactable.h
  /usr/local/include/yarp/os/BinPortable.h
  /usr/local/include/yarp/os/Bottle.h

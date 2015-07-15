@@ -5,6 +5,7 @@ SET(CMAKE_DEPENDS_LANGUAGES
 # The set of files for implicit dependencies of each language:
 SET(CMAKE_DEPENDS_CHECK_CXX
   "/home/yeshi/qt/stfiltering/eventHistoryBuffer.cpp" "/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o"
+  "/home/yeshi/qt/stfiltering/icubInterface.cpp" "/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/icubInterface.cpp.o"
   "/home/yeshi/qt/stfiltering/main.cpp" "/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/main.cpp.o"
   "/home/yeshi/qt/stfiltering/stFilters.cpp" "/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/stFilters.cpp.o"
   )
@@ -23,6 +24,7 @@ SET(CMAKE_TARGET_LINKED_INFO_FILES
 SET(CMAKE_C_TARGET_INCLUDE_PATH
   "/usr/include/opencv"
   "/usr/local/include"
+  "/usr/local/cuda-7.0/include"
   )
 SET(CMAKE_CXX_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})
 SET(CMAKE_Fortran_TARGET_INCLUDE_PATH ${CMAKE_C_TARGET_INCLUDE_PATH})

@@ -52,28 +52,13 @@ include CMakeFiles/stfiltering.dir/progress.make
 # Include the compile flags for this target's objects.
 include CMakeFiles/stfiltering.dir/flags.make
 
-CMakeFiles/stfiltering.dir/main.cpp.o: CMakeFiles/stfiltering.dir/flags.make
-CMakeFiles/stfiltering.dir/main.cpp.o: ../main.cpp
+CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o: CMakeFiles/stfiltering.dir/stfiltering_generated_stFiltersGPU.cu.o.depend
+CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o: CMakeFiles/stfiltering.dir/stfiltering_generated_stFiltersGPU.cu.o.cmake
+CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o: ../stFiltersGPU.cu
 	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles $(CMAKE_PROGRESS_1)
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/stfiltering.dir/main.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stfiltering.dir/main.cpp.o -c /home/yeshi/qt/stfiltering/main.cpp
-
-CMakeFiles/stfiltering.dir/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/stfiltering.dir/main.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/yeshi/qt/stfiltering/main.cpp > CMakeFiles/stfiltering.dir/main.cpp.i
-
-CMakeFiles/stfiltering.dir/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/stfiltering.dir/main.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/yeshi/qt/stfiltering/main.cpp -o CMakeFiles/stfiltering.dir/main.cpp.s
-
-CMakeFiles/stfiltering.dir/main.cpp.o.requires:
-.PHONY : CMakeFiles/stfiltering.dir/main.cpp.o.requires
-
-CMakeFiles/stfiltering.dir/main.cpp.o.provides: CMakeFiles/stfiltering.dir/main.cpp.o.requires
-	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/main.cpp.o.provides.build
-.PHONY : CMakeFiles/stfiltering.dir/main.cpp.o.provides
-
-CMakeFiles/stfiltering.dir/main.cpp.o.provides.build: CMakeFiles/stfiltering.dir/main.cpp.o
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold "Building NVCC (Device) object CMakeFiles/stfiltering.dir//./stfiltering_generated_stFiltersGPU.cu.o"
+	cd /home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir && /usr/bin/cmake -E make_directory /home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir//.
+	cd /home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir && /usr/bin/cmake -D verbose:BOOL=$(VERBOSE) -D build_configuration:STRING= -D generated_file:STRING=/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir//./stfiltering_generated_stFiltersGPU.cu.o -D generated_cubin_file:STRING=/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir//./stfiltering_generated_stFiltersGPU.cu.o.cubin.txt -P /home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir//stfiltering_generated_stFiltersGPU.cu.o.cmake
 
 CMakeFiles/stfiltering.dir/stFilters.cpp.o: CMakeFiles/stfiltering.dir/flags.make
 CMakeFiles/stfiltering.dir/stFilters.cpp.o: ../stFilters.cpp
@@ -98,9 +83,32 @@ CMakeFiles/stfiltering.dir/stFilters.cpp.o.provides: CMakeFiles/stfiltering.dir/
 
 CMakeFiles/stfiltering.dir/stFilters.cpp.o.provides.build: CMakeFiles/stfiltering.dir/stFilters.cpp.o
 
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o: CMakeFiles/stfiltering.dir/flags.make
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o: ../icubInterface.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles $(CMAKE_PROGRESS_3)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/stfiltering.dir/icubInterface.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stfiltering.dir/icubInterface.cpp.o -c /home/yeshi/qt/stfiltering/icubInterface.cpp
+
+CMakeFiles/stfiltering.dir/icubInterface.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/stfiltering.dir/icubInterface.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/yeshi/qt/stfiltering/icubInterface.cpp > CMakeFiles/stfiltering.dir/icubInterface.cpp.i
+
+CMakeFiles/stfiltering.dir/icubInterface.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/stfiltering.dir/icubInterface.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/yeshi/qt/stfiltering/icubInterface.cpp -o CMakeFiles/stfiltering.dir/icubInterface.cpp.s
+
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o.requires:
+.PHONY : CMakeFiles/stfiltering.dir/icubInterface.cpp.o.requires
+
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o.provides: CMakeFiles/stfiltering.dir/icubInterface.cpp.o.requires
+	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/icubInterface.cpp.o.provides.build
+.PHONY : CMakeFiles/stfiltering.dir/icubInterface.cpp.o.provides
+
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o.provides.build: CMakeFiles/stfiltering.dir/icubInterface.cpp.o
+
 CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o: CMakeFiles/stfiltering.dir/flags.make
 CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o: ../eventHistoryBuffer.cpp
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles $(CMAKE_PROGRESS_3)
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles $(CMAKE_PROGRESS_4)
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o"
 	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o -c /home/yeshi/qt/stfiltering/eventHistoryBuffer.cpp
 
@@ -121,25 +129,53 @@ CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o.provides: CMakeFiles/stfilte
 
 CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o.provides.build: CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o
 
+CMakeFiles/stfiltering.dir/main.cpp.o: CMakeFiles/stfiltering.dir/flags.make
+CMakeFiles/stfiltering.dir/main.cpp.o: ../main.cpp
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles $(CMAKE_PROGRESS_5)
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Building CXX object CMakeFiles/stfiltering.dir/main.cpp.o"
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_FLAGS) -o CMakeFiles/stfiltering.dir/main.cpp.o -c /home/yeshi/qt/stfiltering/main.cpp
+
+CMakeFiles/stfiltering.dir/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/stfiltering.dir/main.cpp.i"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -E /home/yeshi/qt/stfiltering/main.cpp > CMakeFiles/stfiltering.dir/main.cpp.i
+
+CMakeFiles/stfiltering.dir/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/stfiltering.dir/main.cpp.s"
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_FLAGS) -S /home/yeshi/qt/stfiltering/main.cpp -o CMakeFiles/stfiltering.dir/main.cpp.s
+
+CMakeFiles/stfiltering.dir/main.cpp.o.requires:
+.PHONY : CMakeFiles/stfiltering.dir/main.cpp.o.requires
+
+CMakeFiles/stfiltering.dir/main.cpp.o.provides: CMakeFiles/stfiltering.dir/main.cpp.o.requires
+	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/main.cpp.o.provides.build
+.PHONY : CMakeFiles/stfiltering.dir/main.cpp.o.provides
+
+CMakeFiles/stfiltering.dir/main.cpp.o.provides.build: CMakeFiles/stfiltering.dir/main.cpp.o
+
 # Object files for target stfiltering
 stfiltering_OBJECTS = \
-"CMakeFiles/stfiltering.dir/main.cpp.o" \
 "CMakeFiles/stfiltering.dir/stFilters.cpp.o" \
-"CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o"
+"CMakeFiles/stfiltering.dir/icubInterface.cpp.o" \
+"CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o" \
+"CMakeFiles/stfiltering.dir/main.cpp.o"
 
 # External object files for target stfiltering
-stfiltering_EXTERNAL_OBJECTS =
+stfiltering_EXTERNAL_OBJECTS = \
+"/home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o"
 
-stfiltering: CMakeFiles/stfiltering.dir/main.cpp.o
 stfiltering: CMakeFiles/stfiltering.dir/stFilters.cpp.o
+stfiltering: CMakeFiles/stfiltering.dir/icubInterface.cpp.o
 stfiltering: CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o
+stfiltering: CMakeFiles/stfiltering.dir/main.cpp.o
+stfiltering: CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o
 stfiltering: CMakeFiles/stfiltering.dir/build.make
-stfiltering: /usr/local/lib/libYARP_OS.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_sig.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_math.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_dev.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_name.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_init.so.2.3.63.8
+stfiltering: /usr/local/cuda-7.0/lib64/libcudart.so
+stfiltering: /usr/local/lib/libYARP_OS.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_sig.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_math.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_dev.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_name.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_init.so.2.3.64.1
 stfiltering: /usr/local/lib/x86_64-linux-gnu/libeMorphLib.a
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_videostab.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
@@ -159,12 +195,13 @@ stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_features2d.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_core.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_contrib.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_calib3d.so.2.4.8
-stfiltering: /usr/local/lib/libYARP_math.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_dev.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_sig.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_name.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_init.so.2.3.63.8
-stfiltering: /usr/local/lib/libYARP_OS.so.2.3.63.8
+stfiltering: /usr/local/cuda-7.0/lib64/libcudart.so
+stfiltering: /usr/local/lib/libYARP_math.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_dev.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_sig.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_name.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_init.so.2.3.64.1
+stfiltering: /usr/local/lib/libYARP_OS.so.2.3.64.1
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_photo.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_legacy.so.2.4.8
 stfiltering: /usr/lib/x86_64-linux-gnu/libopencv_video.so.2.4.8
@@ -184,16 +221,17 @@ stfiltering: CMakeFiles/stfiltering.dir/link.txt
 CMakeFiles/stfiltering.dir/build: stfiltering
 .PHONY : CMakeFiles/stfiltering.dir/build
 
-CMakeFiles/stfiltering.dir/requires: CMakeFiles/stfiltering.dir/main.cpp.o.requires
 CMakeFiles/stfiltering.dir/requires: CMakeFiles/stfiltering.dir/stFilters.cpp.o.requires
+CMakeFiles/stfiltering.dir/requires: CMakeFiles/stfiltering.dir/icubInterface.cpp.o.requires
 CMakeFiles/stfiltering.dir/requires: CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o.requires
+CMakeFiles/stfiltering.dir/requires: CMakeFiles/stfiltering.dir/main.cpp.o.requires
 .PHONY : CMakeFiles/stfiltering.dir/requires
 
 CMakeFiles/stfiltering.dir/clean:
 	$(CMAKE_COMMAND) -P CMakeFiles/stfiltering.dir/cmake_clean.cmake
 .PHONY : CMakeFiles/stfiltering.dir/clean
 
-CMakeFiles/stfiltering.dir/depend:
+CMakeFiles/stfiltering.dir/depend: CMakeFiles/stfiltering.dir/./stfiltering_generated_stFiltersGPU.cu.o
 	cd /home/yeshi/qt/stfiltering/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/yeshi/qt/stfiltering /home/yeshi/qt/stfiltering /home/yeshi/qt/stfiltering/build /home/yeshi/qt/stfiltering/build /home/yeshi/qt/stfiltering/build/CMakeFiles/stfiltering.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/stfiltering.dir/depend
 

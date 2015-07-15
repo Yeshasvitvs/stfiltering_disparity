@@ -138,6 +138,30 @@ eventHistoryBuffer.cpp.s:
 	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.s
 .PHONY : eventHistoryBuffer.cpp.s
 
+icubInterface.o: icubInterface.cpp.o
+.PHONY : icubInterface.o
+
+# target to build an object file
+icubInterface.cpp.o:
+	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/icubInterface.cpp.o
+.PHONY : icubInterface.cpp.o
+
+icubInterface.i: icubInterface.cpp.i
+.PHONY : icubInterface.i
+
+# target to preprocess a source file
+icubInterface.cpp.i:
+	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/icubInterface.cpp.i
+.PHONY : icubInterface.cpp.i
+
+icubInterface.s: icubInterface.cpp.s
+.PHONY : icubInterface.s
+
+# target to generate assembly for a file
+icubInterface.cpp.s:
+	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/icubInterface.cpp.s
+.PHONY : icubInterface.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -198,6 +222,9 @@ help:
 	@echo "... eventHistoryBuffer.o"
 	@echo "... eventHistoryBuffer.i"
 	@echo "... eventHistoryBuffer.s"
+	@echo "... icubInterface.o"
+	@echo "... icubInterface.i"
+	@echo "... icubInterface.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

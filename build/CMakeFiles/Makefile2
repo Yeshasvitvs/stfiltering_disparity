@@ -62,7 +62,7 @@ CMAKE_BINARY_DIR = /home/yeshi/qt/stfiltering/build
 CMakeFiles/stfiltering.dir/all:
 	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/depend
 	$(MAKE) -f CMakeFiles/stfiltering.dir/build.make CMakeFiles/stfiltering.dir/build
-	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles  1 2 3
+	$(CMAKE_COMMAND) -E cmake_progress_report /home/yeshi/qt/stfiltering/build/CMakeFiles  1 2 3 4 5
 	@echo "Built target stfiltering"
 .PHONY : CMakeFiles/stfiltering.dir/all
 
@@ -72,7 +72,7 @@ all: CMakeFiles/stfiltering.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/stfiltering.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/yeshi/qt/stfiltering/build/CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/yeshi/qt/stfiltering/build/CMakeFiles 5
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/stfiltering.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/yeshi/qt/stfiltering/build/CMakeFiles 0
 .PHONY : CMakeFiles/stfiltering.dir/rule

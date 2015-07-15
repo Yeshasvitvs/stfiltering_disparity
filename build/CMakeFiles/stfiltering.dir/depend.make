@@ -96,9 +96,14 @@ CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o: /usr/local/include/yarp/sig
 CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o: /usr/local/include/yarp/sig/all.h
 CMakeFiles/stfiltering.dir/eventHistoryBuffer.cpp.o: /usr/local/include/yarp/sig/api.h
 
+CMakeFiles/stfiltering.dir/icubInterface.cpp.o: ../icubInterface.cpp
+
 CMakeFiles/stfiltering.dir/main.cpp.o: ../eventHistoryBuffer.hpp
+CMakeFiles/stfiltering.dir/main.cpp.o: ../icubInterface.hpp
 CMakeFiles/stfiltering.dir/main.cpp.o: ../main.cpp
 CMakeFiles/stfiltering.dir/main.cpp.o: ../stFilters.h
+CMakeFiles/stfiltering.dir/main.cpp.o: ../stFiltersGPU.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/cuda-7.0/include/cuda.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/iCub/emorph/all.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/iCub/emorph/vBottle.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/iCub/emorph/vCodec.h
@@ -107,6 +112,29 @@ CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/conf/api.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/conf/numeric.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/conf/options.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/conf/system.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/CalibratorInterfaces.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/ControlBoardInterfaces.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/ControlBoardPid.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/DeviceDriver.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/Drivers.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IControlMode.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IControlMode2.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IEncoders.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IEncodersTimed.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IImpedanceControl.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IInteractionMode.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IMotor.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IMotorEncoders.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IOpenLoopControl.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IPositionControl.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IPositionControl2.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IPositionDirect.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IRemoteVariables.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/ITorqueControl.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IVelocityControl.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/IVelocityControl2.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/PolyDriver.h
+CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/dev/api.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/os/AbstractContactable.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/os/BinPortable.h
 CMakeFiles/stfiltering.dir/main.cpp.o: /usr/local/include/yarp/os/Bottle.h
