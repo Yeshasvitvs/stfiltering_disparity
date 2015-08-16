@@ -6,7 +6,7 @@ eventHistoryBuffer::eventHistoryBuffer(){ //one time initialization
     std::cout << "Event History Buffer Constructor..." << std::endl;
     height = MAX_RES;
     width = MAX_RES;
-    bufferSize = 10;
+    bufferSize = 50;
     time_scale = 1000000;
     disp = false;
 
@@ -32,10 +32,10 @@ double eventHistoryBuffer::updateList(emorph::AddressEvent &event){
     //converting to seconds
     event_time = event_time / time_scale;
 
-    //Encoding polarity information of the event in timestamp
-    polarity = event.getPolarity();
-    if(polarity == 0){polarity = -1;} //Changing polarity to negative
-    event_time = polarity * event_time;
+    //Encoding channel information of the event in timestamp so that both Left and Right eyes events can be stored
+    channel = event.getChannel();
+    if(channel == 0){channel = -1;} //Changing Left eye channel value to -1
+    event_time = channel * event_time;
 
     //Pushing the event time stamp into the list
     timeStampList[x][y].push_back(event_time);

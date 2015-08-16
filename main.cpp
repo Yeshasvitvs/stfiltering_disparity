@@ -14,7 +14,7 @@
 //TODO Need to redo the GPU Implementation details with Phase shift details
 #define NUMFILTERS 2 //Number of ST Filters, Blocks in the GPU Kernel
 #define NUMDIRECTIONS 8 //Number of Directions, Threads in each block of GPU Kernel
-#define NUMPHASES 7 //Number of Phases
+#define NUMPHASES 5 //Number of Phases
 
 #include <cuda.h>
 #include <iostream>
@@ -23,8 +23,9 @@
 #include <stdio.h>
 #include <string>
 #include <cmath>
-#include <tuple>
+//#include <tuple>
 #include <numeric>
+
 #include <yarp/os/all.h>
 #include <yarp/sig/all.h>
 #include <yarp/conf/options.h>
@@ -61,9 +62,10 @@ using namespace cv;
 
 //Global variables
 
-//Event History buffer instance for LEFT and RIGHT Eyes
-eventHistoryBuffer event_history_left;
-eventHistoryBuffer event_history_right;
+int num_events=0;
+
+//TODO Use one Single buffer with the channel information encoded in it
+eventHistoryBuffer event_history;
 int kernel_size;
 double temporal_diff_step;
 
@@ -75,6 +77,7 @@ double max_theta;
 int theta_index;
 std::vector<double> theta_vector;
 std::vector<double>::iterator theta_vector_it;
+double theta;
 
 //Number of Phases
 int number_phases;
@@ -98,7 +101,8 @@ emorph::vtsHelper unwrap;
 double event_time;
 
 
-double even_conv_left,odd_conv_left;
+double even_conv_left;
+double odd_conv_left;
 //NOTE Check if this can be implmented in any other ways
 double even_conv_right[NUMPHASES];
 double odd_conv_right[NUMPHASES]; //Arrays of size = number of phases
@@ -112,41 +116,36 @@ std::vector<double> binocular_enery_theta;
 std::vector<double>::iterator binocular_enery_theta_it;
 void motionHypothesis(int&,int&);
 
-//Quiver function
-void quiver_plot(int&, int&, double&,double&);
-
 //Instance of stFitlering class with filter parameters as arguments
-stFilters st_filters;//Default parameters
+int pos_x,pos_y;
+
+//TODO Need to have different set of filters
+//stFilters st_filters_half(0.42, 6.5, 0.42*0.01, 5);
+//stFilters st_filters(0.42, 6.5, 0.42, 5);//Default parameters
+//stFilters st_filters_double(0.42, 6.5, 0.42*20, 5);
+
+stFilters st_filters(0.0625, 6.5, 0.0625, 5);
 
 double eta; //Normalizing parameter for MT pooling
 
-
-//Output files
-std::vector<string> files;
-std::string flow_file = "flow.txt";
-ofstream ffile;
-
-
-
-
-
 int initialize(){
 
-    kernel_size = 11;
+    kernel_size = 31;
     temporal_diff_step = 1;
 
 
     //Number of directions - Changing the range from 0 to PI, NOTE
     max_theta =  M_PI;
     number_directions = 8;
-    theta_step = 0.125;
+    theta_step = 0.25;
 
     //Number of phases - In the range of - PI to PI
     max_phase = M_PI;
     number_phases = NUMPHASES; //Check this once again
-    phase_step = (2*M_PI)/7; //Check this once again
+    phase_step = (2*M_PI)/5; //Check this once again
 
-    eta = 0.0001; //TODO  check the value
+    //eta = 0.0001; //TODO  check the value
+    eta = 0;
 
     //Checking the Values of empty arrays
     /*for(int t=0;t<8;t++){
@@ -156,37 +155,166 @@ int initialize(){
 
     }*/
 
-   /* //iCub Variable Initialization
-    options.put("device","remote_controlboard");
-    options.put("local","/mover/motor/client");
-    options.put("remote","/icubSim/head");
+    //Setting the theta vector based on the number of directios
+    double value = 0;
+    for(int p=1; p<=number_directions ;p++){ //Loop runs for number of directions
 
-    if(!robotHead.isValid()){
-
-        std::cout << "Cannot connect to robot head" << std::endl;
-        return 1;
+        //value = value + theta_step; //Line here in case of testing with single direction i.e theta
+        theta_vector.push_back( value * M_PI);
+        value = value + theta_step; //Line here in case all directions and with fixed theta step
 
     }
 
-    robotHead.view(pos);
-    robotHead.view(vel);
-    robotHead.view(enc);
+    //Setting the phase vector based on the number of phases
+    double phase_gen[]={-1,-0.5,0,0.5,1};
+    double phase_value=0; //Local Varialbe
+    for(int t=0; t< number_phases; t++){
 
-    if (pos==NULL || vel==NULL || enc==NULL)
-    {
-         std::cout << "Cannot get interface to robot head\n" << std::endl;
-         robotHead.close();
-         return 1;
+        //std::cout << "Phase Gen :"<< phase_gen[t] <<std::endl; //Debug Code
+        phase_value = max_phase * phase_gen[t];
+
+        phase_vector.push_back(phase_value);
+        std::cout<<"Phase Values : "<< phase_value <<std::endl; //Debug Code
+
+        disparity_vector.push_back(phase_value/st_filters.omega);
+        std::cout<<"Disparity Values : "<< phase_value/st_filters.omega <<std::endl; //Debug Code
+
     }
-
-
-    pos->getAxes(&jnts); //Getting axis positions for each jonit in the head
-    std::cout << "Number of Joints : " << jnts << std::endl;//Debug Code */
-
 
 
 
 }
+
+
+void processing(){
+
+    int current_event_channel;
+
+    //Resetting filter convolution value for every event processing
+    even_conv_left = 0;
+    odd_conv_left = 0;
+
+    //Right Eye convolution variables are stored in the array of size equal to number of phases
+    std::fill_n(even_conv_right,number_phases,0); //Array initilization to zero
+    std::fill_n(odd_conv_right,number_phases,0);
+
+
+
+    //Spatial and Temporal neighborhood processing - Left Eye
+    for(int j=1 ; j<= kernel_size ; j++){
+        for(int i=1 ; i <= kernel_size ; i++){
+
+            //Pixels to be processed in the spatial neighbourhood for both eyes - SPATIAL CORRELATION
+            int pixel_x = pos_x + i-16;
+            int pixel_y = pos_y + j-16;
+            double temporal_difference;
+
+            if(pixel_x >= 0 && pixel_y>= 0 && pixel_x < MAX_RES && pixel_y < MAX_RES){  //Checking for borders
+
+
+                event_history.timeStampsList_it = event_history.timeStampList[pixel_x][pixel_y].rbegin(); //Going from latest event pushed in the back
+
+                //NOTE : List size is always limited to the buffer size, took care of this in the event buffer code
+                if(!event_history.timeStampList[pixel_x][pixel_y].empty()){ //If the list is empty skip computing
+
+                    //std::cout << "Event History Buffer Size : " <<  event_history.timeStampList[pixel_x][pixel_y].size() << std::endl;//Debug Code
+
+                    for( int list_length = 1 ; list_length <= event_history.timeStampList[pixel_x][pixel_y].size() ; ){
+
+
+                        //NOTE : Timestamps in the list are encoded with polarity information
+                         temporal_difference = event_time - abs(*event_history.timeStampsList_it); //The first value is always zero
+                         //std::cout << "Temporal difference : " << temporal_difference <<std::endl; //Debug code
+
+                         current_event_channel = (*event_history.timeStampsList_it)/(abs(*event_history.timeStampsList_it));
+
+                         //Here the neighborhood processing goes over 0 - 1 time scale
+                          if(temporal_difference > temporal_diff_step){
+                            //std::cout << "Skipping the list element..." << std::endl;//Debug Code
+                            ++list_length;
+                            continue;
+                         }
+
+                         //NOTE: Now processing left and right channels based on the channel infomarion decoded from event history buffer
+                         if(current_event_channel == -1){ //Left eye events
+
+
+                             double phase=0.0; //Local Variable
+                             //Call the spatio-temporal filtering function
+                             std::pair<double,double> conv_value = st_filters.filtering(pixel_x, pixel_y, theta, temporal_difference,phase);
+
+                             //TODO Check the effects of Polarity here! Without polarity its fine to get just the motion energy
+                             even_conv_left = even_conv_left +  conv_value.first;
+                             odd_conv_left = odd_conv_left +   conv_value.second;
+
+                             //std::cout << "Left Eye EVEN and ODD : " << even_conv_left << " " << odd_conv_left << std::endl; //Debug Code
+
+                         }
+
+                         if(current_event_channel == 1){//Right eye events
+
+
+                             double phase = 0;
+                             phase_vector_it = phase_vector.begin(); //Starting from the first
+                             for(int t=0; t < number_phases ; ){
+
+                                 //std::cout << "Initial Even Right : "<< even_conv_right[t] << std::endl; //Debug Code
+                                 //std::cout << "Initial Odd Right : "<< odd_conv_right[t] << std::endl; //Debug Code
+
+                                 phase = *phase_vector_it; //Local Varialbe
+                                 //std::cout << "Phase Value : "<<phase<<std::endl;//Debug Code
+                                 //Call the spatio-temporal filtering function
+                                 std::pair<double,double> conv_value = st_filters.filtering(pixel_x, pixel_y, theta, temporal_difference,phase);
+
+                                 //TODO Check the effects of Polarity here! Without polarity its fine to get just the motion energy
+                                 even_conv_right[t] = even_conv_right[t] +  conv_value.first;
+                                 odd_conv_right[t] = odd_conv_right[t] +   conv_value.second;
+
+                                 //std::cout << "Right Eye EVEN and ODD : " << even_conv_right[t] << " " << odd_conv_right[t] << std::endl; //Debug Code
+
+                                 ++phase_vector_it;
+                                 ++t;
+
+                             }
+
+
+                         }
+
+
+                         ++event_history.timeStampsList_it; //Moving up the list
+                         ++list_length;
+
+
+
+                    }//End of temporal iteration loop
+
+                }
+                else {
+
+                    //std::cout << "Skipping empty list of Left Eye..." << std::endl; //Debug Code
+                    continue;
+                }
+
+      }
+
+
+       else{
+
+             //std::cout<< "Pixels Out of Bordes...."<<std::endl; //Debug Code
+             continue;
+           }
+
+       }
+    }//End of spatial iteration loop
+
+    //std::cout << "Left eye convolution values : " << even_conv_left << " " << odd_conv_left << std::endl; //Debug Code
+
+
+}
+
+
+
+
 
 
 //Final Disparity Estimation
@@ -194,13 +322,13 @@ void disparity_estimation(){
 
     theta_vector_it = theta_vector.begin();
     disparity_est_theta_it = disparity_est_theta.begin();
+    //std::cout << "Size of disprity estimation vector : " << disparity_est_theta.size()<<std::endl;//Debug Code
+    /*for( ;disparity_est_theta_it!= disparity_est_theta.end();){
 
-    for( ;disparity_est_theta_it!= disparity_est_theta.end();){
-
-        //std::cout << "Disparity Estimates for Each Theta : " << *disparity_est_theta_it << std::endl ; //Debug Code
+        std::cout << "Disparity Estimates for Each Theta : " << *disparity_est_theta_it << std::endl ; //Debug Code
         disparity_est_theta_it++;
 
-    }
+    }*/
 
     double disp_x_theta[NUMDIRECTIONS];
     double disp_y_theta[NUMDIRECTIONS];
@@ -223,14 +351,18 @@ void disparity_estimation(){
 
         //std::cout << "Before Disp X and Y for each Theta : " << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl; //Debug Code
         disp_x_theta[theta_index] = *disparity_est_theta_it * cos(*theta_vector_it);
-        disp_y_theta[theta_index] = *disparity_est_theta_it * sin(*theta_vector_it);
+        disp_y_theta[theta_index] = *disparity_est_theta_it * sin(*theta_vector_it); //Becomes zero
+
+        //std::cout << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl;//Debug Code
 
         //std::cout << "Disparity Estimate and Theta : " << *disparity_est_theta_it << " " << *theta_vector_it << std::endl; //Debug Code
         //std::cout << "After Disp X and Y for each Theta : " << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl; //Debug Code
 
-        sumXX = sumXX + (cos(*theta_vector_it * *theta_vector_it) * cos(*theta_vector_it * *theta_vector_it));
-        sumYY = sumYY + (sin(*theta_vector_it * *theta_vector_it) * sin(*theta_vector_it * *theta_vector_it));
-        sumXY = sumXY + (cos(*theta_vector_it * *theta_vector_it) * sin(*theta_vector_it * *theta_vector_it));
+        sumXX = sumXX + ( cos(*theta_vector_it) * cos(*theta_vector_it) );
+        sumYY = sumYY + ( sin(*theta_vector_it) * sin(*theta_vector_it) ) ; //Becomes Zero
+        sumXY = sumXY + ( cos(*theta_vector_it) * sin( *theta_vector_it));  //Becomes Zero
+
+        //std::cout << sumXX << " " << sumYY << " " << sumXY << std::endl; //Debug Code
 
         ++theta_vector_it;
         ++disparity_est_theta_it;
@@ -246,20 +378,22 @@ void disparity_estimation(){
 
 
         sumX = sumX + disp_x_theta[theta_index];
-        sumY = sumY + disp_y_theta[theta_index];
+        sumY = sumY + disp_y_theta[theta_index]; //Becomes Zero
         ++theta_vector_it;
         ++theta_index;
     }
+
+    //std::cout << sumX << " " << sumY << std::endl; //Debug Code
 
     //std::cout << "SumX SumY SumXX SumYY SumXY : " << sumX << " " << sumY << " " << sumXX << " " << sumYY << " " << sumXY << std::endl; //Debug Code
 
     //Computing the final disparity values
 
-    disp_x = ( sumYY*sumX - sumXY*sumY )/(sumXX*sumYY-sumXY*sumXY);
-    disp_y = ( sumXX*sumY - sumXY*sumX )/(sumXX*sumYY-sumXY*sumXY);
+    disp_x = ( sumYY*sumX - sumXY*sumY )/(sumXX*sumYY-sumXY*sumXY + eta);
+    disp_y = ( sumXX*sumY - sumXY*sumX )/(sumXX*sumYY-sumXY*sumXY + eta);
 
     //std::cout << "Estimated Final Disparity Values : " << disp_x << " " <<disp_y<<std::endl;//Debug Code
-    std::cout << disp_x << " " <<disp_y<<std::endl;//Debug Code
+    //std::cout << disp_x << " " << disp_y << std::endl;//Debug Code
 
     //Calling Vergence control function
     //vergence_control(disp_x); //TODO Send the disparity values
@@ -332,7 +466,6 @@ int main(int argc, char *argv[])
     initialize(); //Initializing the values
 
 
-
    //Resource finder 
    yarp::os::ResourceFinder rf;
    rf.configure(argc,argv);
@@ -377,32 +510,6 @@ int main(int argc, char *argv[])
    }
    else{std::cout << "source port to input port connection failed! " <<std::endl;}
 
-   //Setting the theta vector based on the number of directios
-   double value = 0;
-   for(int p=1; p<=number_directions ;p++){ //Loop runs for number of directions
-
-       //value = value + theta_step; //Line here in case of testing with single direction i.e theta
-       theta_vector.push_back( value * M_PI);
-       value = value + theta_step; //Line here in case all directions and with fixed theta step
-
-   }
-
-   //Setting the phase vector based on the number of phases
-   double phase_gen[]={-1,-0.5,-0.33,0,0.33,0.5,1};
-   double phase_value=0; //Local Varialbe
-   for(int t=0; t< number_phases; t++){
-
-       //std::cout << "Phase Gen :"<< phase_gen[t] <<std::endl; //Debug Code
-       phase_value = max_phase * phase_gen[t];
-
-       phase_vector.push_back(phase_value);
-       //std::cout<<"Phase Values : "<< phase_value <<std::endl; //Debug Code
-
-       disparity_vector.push_back(phase_value/st_filters.omega);
-       //std::cout<<"Disparity Values : "<< phase_value/st_filters.omega <<std::endl; //Debug Code
-
-   }
-
 
 
    while(true){ //TODO wait till the input port receives data and run
@@ -418,42 +525,36 @@ int main(int argc, char *argv[])
     tempEvents->getAll(q); // 1 ms timeframe
     //std::cout << "Processing " << q.size()<< " events" <<std::endl;
 
- 	for (q_it = q.begin(); q_it != q.end(); q_it++) //Processing each event
+    //for (q_it = q.begin(); q_it != q.end(); q_it++) //Processing each event
+    while(!q.empty()) //Do the computation till the queue is empty
             {
 
+                //std::cout << "Queue Size : " << q.size()<< " events" <<std::endl;
+                q_it = q.begin();
                 emorph::AddressEvent *aep = (*q_it)->getAs<emorph::AddressEvent>(); //Getting each event from the Queue
+                q.pop_front();
                 if(!aep) continue; //If AER is not received continue
-                int channel = aep->getChannel(); //Processing events of only both channel - LEFT and Right Eye
+                else num_events = num_events+1; //Keeping count of number of events processed
+                int channel = aep->getChannel(); //Processing events of both channel - LEFT and Right Eye
 
 
-                if(channel==0){
+                //NOTE this is the new implementation with single event history buffer
+                event_history.updateList(*aep); //Single event history buffer that stores both left and right eye information
 
-                    //Updating the event history buffer - LEFT Eye
-                    event_history_left.updateList(*aep);
-
-                }
-                else if(channel==1){
-
-                    //Updating the event history buffer - RIGHT Eye
-                    event_history_right.updateList(*aep);
-
-
-                }
 
                     //NOTE : Sensor X and Y are reversed
-                    int pos_x = aep->getY();
-                    int pos_y = aep->getX();
-                    int current_event_polarity = aep->getPolarity();
-                    if(current_event_polarity == 0){current_event_polarity = -1;} //Changing polarity to negative
+                    pos_x = aep->getY();
+                    pos_y = aep->getX();
 
-                    //std::cout<< "Processing Event at "<<"Channel: "<<channel<< " X : "<< pos_x <<" Y : "<< pos_y << " Polarity : "<<current_event_polarity<<std::endl; //Debug code
+
+                    //std::cout<< "Processing Event at "<<"Channel: "<<channel<< " X : "<< pos_x <<" Y : "<< pos_y << std::endl; //Debug code
 
 
                     //Time stamp of the recent event
                     event_time = unwrap (aep->getStamp());
 
                     //converting to seconds
-                    event_time = event_time / event_history_left.time_scale;
+                    event_time = event_time / event_history.time_scale;
 
 
                     //Setting the filter spatial center values - Both Left and Right Filters are centered at the same spatial location - SPATIAL CORRELATION
@@ -467,203 +568,22 @@ int main(int argc, char *argv[])
 
                     for(; theta_vector_it != theta_vector.end() ; ){
 
-
-                        //Open a file to write values for each ditection
-                        stringstream itos;
-                        itos << theta_index;
-
-                        string file_name;
-                        file_name = 'd'+ itos.str() + ".txt";
-                        files.push_back(file_name);
-
-                        ofstream dfile;
-                        string file = files.at(theta_index);
-                        dfile.open(file.c_str(),ios::in | ios::app);
-
-                        //NOTE : The Following code is DEBUG
-                        string full_file;
-                        full_file = "full.txt";
-
-                        ofstream fufile;
-                        fufile.open(full_file.c_str(),ios::in | ios::app);
-
-
-                        double theta = *theta_vector_it;
+                        theta = *theta_vector_it;
                         //std::cout<<"Processing for Theta : " << theta<<std::endl;//Debug Code
 
-                        //Resetting filter convolution value for every event processing
-                        even_conv_left = 0;
-                        odd_conv_left = 0;
+                        processing(); //Calling the processing function
 
-                        //Right Eye convolution variables are stored in the array of size equal to number of phases
-                        std::fill_n(even_conv_right,number_phases,0);
-                        std::fill_n(odd_conv_right,number_phases,0);
+                        //Final Convolution values reset to zero
                         std::fill_n(final_convolution_even,number_phases,0);
                         std::fill_n(final_convolution_odd,number_phases,0);
                         std::fill_n(final_convolution,number_phases,0);
 
-                        //Spatial and Temporal neighborhood processing - Left Eye
-                        for(int j=1 ; j<= kernel_size ; j++){
-                            for(int i=1 ; i <= kernel_size ; i++){
 
-                                //Pixels to be processed in the spatial neighbourhood for both eyes - SPATIAL CORRELATION
-                                int pixel_x = pos_x + i-6;
-                                int pixel_y = pos_y + j-6;
-                                double temporal_difference;
-
-                                if(pixel_x >= 0 && pixel_y>= 0 && pixel_x < MAX_RES && pixel_y < MAX_RES){  //Checking for borders
-
-
-                                    //std::cout << "Event Processing Left Buffer..."<<std::endl;//Debug Code
-                                    //LEFT EYE PROCESSING
-
-                                    event_history_left.timeStampsList_it = event_history_left.timeStampList[pixel_x][pixel_y].rbegin(); //Going from latest event pushed in the back
-
-                                    //NOTE : List size is always limited to the buffer size, took care of this in the event buffer code
-                                    if(!event_history_left.timeStampList[pixel_x][pixel_y].empty()){ //If the list is empty skip computing
-
-                                        //std::cout << "Buffer Size Left Eye : " <<  event_history_left.timeStampList[pixel_x][pixel_y].size() << std::endl;//Debug Code
-
-                                        for( int list_length = 1 ; list_length <= event_history_left.timeStampList[pixel_x][pixel_y].size() ; ){
-
-
-                                            //NOTE : Timestamps in the list are encoded with polarity information
-                                             temporal_difference = event_time - abs(*event_history_left.timeStampsList_it); //The first value is always zero
-                                             //std::cout << "Temporal difference : " << temporal_difference <<std::endl; //Debug code
-
-                                             //Here the neighborhood processing goes over 0 - 1 time scale
-                                              if(temporal_difference > temporal_diff_step){
-                                                //std::cout << "Skipping the list element..." << std::endl;//Debug Code
-                                                ++list_length;
-                                                continue;
-                                             }
-
-
-                                             double phase=0.0; //Local Variable
-                                             //Call the spatio-temporal filtering function
-                                             std::pair<double,double> conv_value = st_filters.filtering(pixel_x, pixel_y, theta, temporal_difference,phase);
-
-                                             //TODO Check the effects of Polarity here! Without polarity its fine to get just the motion energy
-                                             even_conv_left = even_conv_left +  conv_value.first;
-                                             odd_conv_left = odd_conv_left +   conv_value.second;
-
-                                             ++event_history_left.timeStampsList_it; //Moving up the list
-                                             ++list_length;
-
-
-
-                                        }//End of temporal iteration loop
-
-                                    }
-                                    else {
-
-                                        //std::cout << "Skipping empty list of Left Eye..." << std::endl; //Debug Code
-                                        continue;
-                                    }     
-
-                          }
-
-
-                           else{
-
-                                 //std::cout<< "Pixels Out of Bordes...."<<std::endl; //Debug Code
-                                 continue;
-                               }
-
-                           }
-                        }//End of spatial iteration loop
-
-
-                        //Spatial and Temporal neighborhood processing - Right Eye
-                        for(int j=1 ; j<= kernel_size ; j++){
-                            for(int i=1 ; i <= kernel_size ; i++){
-
-                                //Pixels to be processed in the spatial neighbourhood for both eyes - SPATIAL CORRELATION
-                                int pixel_x = pos_x + i-6;
-                                int pixel_y = pos_y + j-6;
-                                double temporal_difference;
-
-                                if(pixel_x >= 0 && pixel_y>= 0 && pixel_x < MAX_RES && pixel_y < MAX_RES){  //Checking for borders
-
-
-                                //RIGHT EYE PROCESSING
-
-                                //std::cout << "Event Processing Right Buffer..."<<std::endl;//Debug Code
-
-                                event_history_right.timeStampsList_it = event_history_right.timeStampList[pixel_x][pixel_y].rbegin(); //Going from latest event pushed in the back
-
-                                //NOTE : List size is always limited to the buffer size, took care of this in the event buffer code
-                                if(!event_history_right.timeStampList[pixel_x][pixel_y].empty()){ //If the list is empty skip computing
-
-                                    //std::cout << "Buffer Size Right Eye : " <<  event_history_right.timeStampList[pixel_x][pixel_y].size() << std::endl;//Debug Code
-
-                                    for( int list_length = 1 ; list_length <= event_history_right.timeStampList[pixel_x][pixel_y].size() ; ){
-
-
-                                        //NOTE : Timestamps in the list are encoded with polarity information
-                                         temporal_difference = event_time - abs(*event_history_right.timeStampsList_it); //The first value is always zero
-                                         //std::cout << "Temporal difference : " << temporal_difference <<std::endl; //Debug code
-
-                                         //Here the neighborhood processing goes over 0 - 1 time scale
-                                          if(temporal_difference > temporal_diff_step){
-                                            //std::cout << "Skipping the list element..." << std::endl;//Debug Code
-                                            ++list_length;
-                                            continue;
-                                         }
-
-
-                                          //Right Eye Each Phase processing
-                                          double phase = 0;
-                                          phase_vector_it = phase_vector.begin(); //Starting from the first
-                                          for(int t=0; t < number_phases ; ){
-
-                                              phase = *phase_vector_it; //Local Varialbe
-                                              //std::cout << "Phase Value : "<<phase<<std::endl;//Debug Code
-                                              //Call the spatio-temporal filtering function
-                                              std::pair<double,double> conv_value = st_filters.filtering(pixel_x, pixel_y, theta, temporal_difference,phase);
-
-                                              //TODO Check the effects of Polarity here! Without polarity its fine to get just the motion energy
-                                              even_conv_right[t] = even_conv_right[t] +  conv_value.first;
-                                              odd_conv_right[t] = odd_conv_right[t] +   conv_value.second;
-
-                                              //std::cout << "Even Right : "<< even_conv_right[t] << std::endl; //Debug Code
-                                              //std::cout << "Odd Right : "<< odd_conv_right[t] << std::endl; //Debug Code
-
-                                              ++phase_vector_it;
-                                              ++t;
-
-                                          }
-
-                                         ++event_history_right.timeStampsList_it; //Moving up the list
-                                         ++list_length;
-
-
-
-                                    }//End of temporal iteration loop
-
-                                }
-                                else {
-
-                                    //std::cout << "Skipping empty list of Right Eye..." << std::endl; //Debug Code
-                                    continue;
-                                }
-                          }
-
-
-                           else{
-
-                                 //std::cout<< "Pixels Out of Bordes...."<<std::endl; //Debug Code
-                                 continue;
-                               }
-
-                           }
-                        }//End of spatial iteration loop
-
-
-
-                        //Energy Response of Quadrature pair, Even and Odd filters
+                        //Energy Response of Quadrature pair, Even and Odd filters - Simple Binocular Cell Response
+                        disparity_vector_it = disparity_vector.begin();
                         for(int t=0; t < number_phases ; ){
 
+                            //std::cout << "Computing Binocular Energy along each phase..." << std::endl;//Debug Code
                             //std::cout << "Left Eye EVEN and ODD : " << even_conv_left << " " << odd_conv_left << std::endl; //Debug Code
                             //std::cout << "Right Eye EVEN and ODD : " << even_conv_right[t] << " " << odd_conv_right[t] << std::endl; //Debug Code
 
@@ -673,33 +593,33 @@ int main(int argc, char *argv[])
                             //std::cout << "Final Convolution EVEN and ODD : " << final_convolution_even[t] << " " << final_convolution_odd[t] << std::endl; //Debug Code
 
                             final_convolution[t] = (final_convolution_even[t]*final_convolution_even[t]) + (final_convolution_odd[t] * final_convolution_odd[t]);
-                            //std::cout << "Final Convolution : " << final_convolution[t] << std::endl; //Debug Code
+                            std::cout << theta_index << " " << *disparity_vector_it << " " << final_convolution[t] << std::endl ; //Debug Code
 
-                            //TODO Chage the vector names
                             binocular_enery_theta.push_back(final_convolution[t]);
+                            disparity_vector_it++;
                             ++t;
-
 
 
                         }
 
 
-
                         //Normalizing Binocular Energy Response Values
-                        double norm_sum =std::accumulate(binocular_enery_theta.begin(),binocular_enery_theta.end(),eta); //Check the effects of eta value
-                        //std::cout << "Norm : " << norm_sum<<std::endl;//Debug Code
+                        //double energy_sum =std::accumulate(binocular_enery_theta.begin(),binocular_enery_theta.end(),eta); //Check the effects of eta value
+                        //std::cout << "Energy Sum : " << energy_sum<<std::endl;//Debug Code
 
                         binocular_enery_theta_it = binocular_enery_theta.begin();
                         disparity_vector_it = disparity_vector.begin();
                         double phase_sum = 0; //Local variable
+                        double energy_sum = 0;
                         for(int t=0; t < number_phases ; ){
 
                             //Check the exact values accessed from the vectors
                             //std::cout << "Disparity value : " << *disparity_vector_it << std::endl; //Debug Code
 
-                            //NOTE Binocular Energy value is the same! Why ??
+                            energy_sum = energy_sum + *binocular_enery_theta_it;
+
                             //std::cout << "Binocular Energy : " << *binocular_enery_theta_it << std::endl; //Debuc Code
-                            phase_sum = phase_sum + ( (*binocular_enery_theta_it * *disparity_vector_it )/norm_sum );
+                            phase_sum = phase_sum + (*binocular_enery_theta_it * *disparity_vector_it );
 
                             ++binocular_enery_theta_it;
                             ++disparity_vector_it;
@@ -707,12 +627,16 @@ int main(int argc, char *argv[])
 
                         }
 
+                        //std::cout <<"Energy sum along all phases : " << phase_sum << std::endl;//Debug Code
+                        phase_sum = phase_sum/energy_sum; //Normalizing
+                        //std::cout << phase_sum << std:: endl;
+                        //std::cout << "Disparity Estimation Theta along all phase : " << phase_sum << std::endl; //Debug Code
 
-                        disparity_est_theta.push_back(phase_sum);
+                        disparity_est_theta.push_back(phase_sum); //This is Complex  Binocular Cell response along all phases at each direction
 
                         //std::cout << std::endl; //Debug Code
 
-                        binocular_enery_theta.clear(); //Clearing the binocular energy vector of each phase
+                        binocular_enery_theta.clear(); //Clearing the binocular energy vector of each theta
                         ++theta_vector_it;
                         ++theta_index;
 
@@ -720,15 +644,11 @@ int main(int argc, char *argv[])
 
                     //std::cout << "Size of Disparity Estimation Vector : " << disparity_est_theta.size() << std::endl; //Debug Code
 
+                    //std::cout << "Number of events processed : " << num_events << std::endl; //Debug Code
                     //Calling Disparity Estimation Function - Should be called with all the directions taking into account
                     disparity_estimation();
 
-
                     //motionHypothesis(pos_x,pos_y);
-
-                //} //End of channel if, one event processing done
-
-
 
         }//End of event queue loop
 
@@ -793,40 +713,4 @@ int main(int argc, char *argv[])
 
 
     }*/
-
-/*void quiver_plot(int &x, int &y, double &ux, double &uy){
-
-
-    double q_theta;
-    cv::Point pt1,pt2;
-
-    if(ux==0){ q_theta=M_PI /20; }
-    else {
-
-        q_theta = atan2(uy,ux);
-    }
-
-    pt1.x = y;
-    pt1.y = x;
-
-    pt2.x = y + uy;
-    pt2.y = x + ux;
-
-    std::cout << "Point 2 X: " <<pt2.x << " Y: " << pt2.y << std::endl;
-
-    cv::line(eventImageMat,pt1,pt2,CV_RGB(0,255,0),1,8,0);
-    cv::namedWindow("EVENT IMAGE",WINDOW_NORMAL);
-    cv::imshow("EVENT IMAGE", eventImageMat);
-    cv::waitKey(1);
-
-
-
-
-}*/
-
-
-
-
-
-
 

@@ -14,7 +14,7 @@
 #include <malloc.h>
 #include <memory.h>
 #include <utility>
-#include <tuple>
+//#include <tuple>
 
 // Includes for CUDA functionality
 
@@ -25,7 +25,7 @@
 
 #if defined MAX_SIZE
 #else
-#define MAX_SIZE 11
+#define MAX_SIZE 31
 #endif
 
 #define _USE_MATH_DEFINES
@@ -61,9 +61,10 @@ class stFilters{
         //Member functions
 
         //Constructor definition
-        stFilters(double frequency_spatial = 0.11, double variance_spatial = 2.5, double frequency_temporal = 0.00121, double variance_temporal = 5){
+        stFilters(double frequency_spatial = 0.08, double variance_spatial = 6.5, double frequency_temporal = 0.08, double variance_temporal = 5){
 
             std::cout<<"Spatial-Temporal Filter parameters initialization..."<<std::endl;
+
 
             //Spatial filter parameters
             f_spatial = frequency_spatial;
@@ -75,6 +76,8 @@ class stFilters{
             //Temporal filter parameters
             f_temporal = frequency_temporal;
             var_temporal = variance_temporal;
+
+             std::cout<<"Parameters : "<< f_spatial << " " << var_spatial << " "<< f_temporal << " "<<var_temporal <<std::endl;//Debug Code
 
 
         }
