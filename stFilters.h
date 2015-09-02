@@ -85,7 +85,7 @@ class stFilters{
 
         //The folliwng function can be changed into GPU kernel
 
-        std::pair<double,double> filtering(int&,int&,double&,double&,double&); //X,Y,theta and time
+        std::pair<double,double> filtering(int&,int&,double&,double&,double&); //X,Y,theta, time and phase
 
 
 
