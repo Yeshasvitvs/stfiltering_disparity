@@ -10,10 +10,7 @@ eventHistoryBuffer::eventHistoryBuffer(){ //one time initialization
     time_scale = 1000000;
     disp = false;
 
-
-
 }
-
 
 double eventHistoryBuffer::updateList(emorph::AddressEvent &event){
 

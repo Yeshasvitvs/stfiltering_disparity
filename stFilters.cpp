@@ -42,15 +42,6 @@ std::pair<double,double> stFilters::filtering(int& x,int& y,double& theta,double
      double st_even = st1 + st3;
      double st_odd =  -st2 + st4;
 
-     //std::cout << "Event Convolution computed: " << st_even << " "<<st_odd<< std::endl;//Debug Code
-
-     //Spatio-Temporal Filter computation
-     //final_convolution[0] = st_even;
-     //final_convolution[1] = st_odd;
-
-     //Computing the motion energy
-     //double final_convolution = st_even * st_even + st_odd * st_odd;
-
     return std::make_pair(st_even,st_odd);
 }
 

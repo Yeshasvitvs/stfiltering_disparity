@@ -14,7 +14,7 @@
 //TODO Need to redo the GPU Implementation details with Phase shift details
 #define NUMFILTERS 2 //Number of ST Filters, Blocks in the GPU Kernel
 #define NUMDIRECTIONS 8 //Number of Directions, Threads in each block of GPU Kernel
-#define NUMPHASES 5 //Number of Phases
+#define NUMPHASES 1 //Number of Phases
 
 #include <cuda.h>
 #include <iostream>
@@ -109,21 +109,17 @@ double odd_conv_right[NUMPHASES]; //Arrays of size = number of phases
 double final_convolution_even[NUMPHASES];
 double final_convolution_odd[NUMPHASES];
 double final_convolution[NUMPHASES];
-void disparity_estimation();
+void disparity_estimation(int&,int&);
 int vergence_control(double&);
 
 std::vector<double> binocular_enery_theta;
 std::vector<double>::iterator binocular_enery_theta_it;
-void motionHypothesis(int&,int&);
+
 
 //Instance of stFitlering class with filter parameters as arguments
 int pos_x,pos_y;
 
 //TODO Need to have different set of filters
-//stFilters st_filters_half(0.42, 6.5, 0.42*0.01, 5);
-//stFilters st_filters(0.42, 6.5, 0.42, 5);//Default parameters
-//stFilters st_filters_double(0.42, 6.5, 0.42*20, 5);
-
 stFilters st_filters(0.0625, 6.5, 0.0625, 5);
 
 double eta; //Normalizing parameter for MT pooling
@@ -317,159 +313,16 @@ void processing(){
 
 
 
-//Final Disparity Estimation
-void disparity_estimation(){
-
-    theta_vector_it = theta_vector.begin();
-    disparity_est_theta_it = disparity_est_theta.begin();
-    //std::cout << "Size of disprity estimation vector : " << disparity_est_theta.size()<<std::endl;//Debug Code
-    /*for( ;disparity_est_theta_it!= disparity_est_theta.end();){
-
-        std::cout << "Disparity Estimates for Each Theta : " << *disparity_est_theta_it << std::endl ; //Debug Code
-        disparity_est_theta_it++;
-
-    }*/
-
-    double disp_x_theta[NUMDIRECTIONS];
-    double disp_y_theta[NUMDIRECTIONS];
-    std::fill_n(disp_x_theta,NUMDIRECTIONS,0); //Initializing with zeroes
-    std::fill_n(disp_y_theta,NUMDIRECTIONS,0);
-    double sumX = 0;
-    double sumY = 0;
-    double sumXX = 0;
-    double sumYY = 0;
-    double sumXY = 0;
-
-    //Final Disparity Values Estimated
-    double disp_x = 0;
-    double disp_y= 0;
-
-    theta_index=0;
-    theta_vector_it = theta_vector.begin();
-    disparity_est_theta_it = disparity_est_theta.begin();
-    for(; theta_vector_it!= theta_vector.end() ;){ //Going over the size of number of directions
-
-        //std::cout << "Before Disp X and Y for each Theta : " << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl; //Debug Code
-        disp_x_theta[theta_index] = *disparity_est_theta_it * cos(*theta_vector_it);
-        disp_y_theta[theta_index] = *disparity_est_theta_it * sin(*theta_vector_it); //Becomes zero
-
-        //std::cout << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl;//Debug Code
-
-        //std::cout << "Disparity Estimate and Theta : " << *disparity_est_theta_it << " " << *theta_vector_it << std::endl; //Debug Code
-        //std::cout << "After Disp X and Y for each Theta : " << disp_x_theta[theta_index] << " " << disp_y_theta[theta_index] << std::endl; //Debug Code
-
-        sumXX = sumXX + ( cos(*theta_vector_it) * cos(*theta_vector_it) );
-        sumYY = sumYY + ( sin(*theta_vector_it) * sin(*theta_vector_it) ) ; //Becomes Zero
-        sumXY = sumXY + ( cos(*theta_vector_it) * sin( *theta_vector_it));  //Becomes Zero
-
-        //std::cout << sumXX << " " << sumYY << " " << sumXY << std::endl; //Debug Code
-
-        ++theta_vector_it;
-        ++disparity_est_theta_it;
-        ++theta_index;
-
-
-
-    }
-
-    theta_vector_it = theta_vector.begin();
-    theta_index=0;
-    for(; theta_vector_it!= theta_vector.end() ;){
-
-
-        sumX = sumX + disp_x_theta[theta_index];
-        sumY = sumY + disp_y_theta[theta_index]; //Becomes Zero
-        ++theta_vector_it;
-        ++theta_index;
-    }
-
-    //std::cout << sumX << " " << sumY << std::endl; //Debug Code
-
-    //std::cout << "SumX SumY SumXX SumYY SumXY : " << sumX << " " << sumY << " " << sumXX << " " << sumYY << " " << sumXY << std::endl; //Debug Code
-
-    //Computing the final disparity values
-
-    disp_x = ( sumYY*sumX - sumXY*sumY )/(sumXX*sumYY-sumXY*sumXY + eta);
-    disp_y = ( sumXX*sumY - sumXY*sumX )/(sumXX*sumYY-sumXY*sumXY + eta);
-
-    //std::cout << "Estimated Final Disparity Values : " << disp_x << " " <<disp_y<<std::endl;//Debug Code
-    //std::cout << disp_x << " " << disp_y << std::endl;//Debug Code
-
-    //Calling Vergence control function
-    //vergence_control(disp_x); //TODO Send the disparity values
-
-    //Clearing the disparity estimation vector
-    disparity_est_theta.clear();
-
-
-
-}
-
-//Vergence Control Routine
-int vergence_control(double &disp_hor){
-
-
-    //std::cout << "Horizontal Disparity received : " << disp_hor << std::endl;//Debug Code
-
-    //iCub Variables
-    Property options;
-
-    options.put("device","remote_controlboard");
-    options.put("local","/mover/motor/client");
-    options.put("remote","/icubSim/head");
-
-    //Head control Interface
-    PolyDriver robotHead(options);
-
-    if(!robotHead.isValid()){
-
-        std::cout << "Cannot connect to robot head" << std::endl;
-        return 1;
-
-    }
-
-    IPositionControl *pos;
-    IVelocityControl *vel;
-    IEncoders *enc;
-
-    robotHead.view(pos);
-    robotHead.view(vel);
-    robotHead.view(enc);
-
-    if (pos==NULL || vel==NULL || enc==NULL)
-    {
-         std::cout << "Cannot get interface to robot head\n" << std::endl;
-         robotHead.close();
-         return 1;
-    }
-
-    int jnts = 0;
-    pos->getAxes(&jnts);
-    std::cout << "Number of Joints : " << jnts << std::endl;//Debug Code
-    yarp::sig::Vector setpoints;
-    setpoints.resize(jnts);
-
-    vel->setVelocityMode();
-    setpoints[5] = 50; //This is the proportional value for the disparity estimated to do vergence vontrol
-    //TODO At what speed the vergence control should happen ?? How the calibration for depth and vergence is achieved ??
-    vel->velocityMove(setpoints.data());
-
-
-}
-
-
 
 int main(int argc, char *argv[])
 {
 
-
     initialize(); //Initializing the values
 
-
-   //Resource finder 
+   //Resource finder
    yarp::os::ResourceFinder rf;
    rf.configure(argc,argv);
-	
+
    //Set up yarp network
    yarp::os::Network yarp;
 
@@ -479,11 +332,11 @@ int main(int argc, char *argv[])
 
 
    emorph::vBottle *tempEvents; //Temporary events
-   
+
 
    //Using Resource finder for port names
    string inputPortName = rf.find("inputPort").asString();
-   string outputPortName = rf.find("outputPort").asString();    
+   string outputPortName = rf.find("outputPort").asString();
    string sourcePortName = rf.find("sourcePort").asString();
 
    //Setting default port names
@@ -495,7 +348,7 @@ int main(int argc, char *argv[])
    bool ok = inputPort.open(inputPortName.c_str()); //Opening input port
    ok = ok && outputPort.open(outputPortName.c_str()); //Opening output port
 
-   
+
    //checking ports
    if (!ok) {
     fprintf(stderr, "Failed to create ports.\n");
@@ -504,7 +357,7 @@ int main(int argc, char *argv[])
    }
 
    if(yarp.connect(sourcePortName.c_str(), inputPortName.c_str(), "tcp")){
- 	  
+
     std::cout << "source port to input port connection successful... " <<std::endl;
 
    }
@@ -521,7 +374,7 @@ int main(int argc, char *argv[])
 
     emorph::vQueue q; //Event queue
    	emorph::vQueue::iterator q_it;//Event queue iterator
- 	
+
     tempEvents->getAll(q); // 1 ms timeframe
     //std::cout << "Processing " << q.size()<< " events" <<std::endl;
 
@@ -534,21 +387,17 @@ int main(int argc, char *argv[])
                 emorph::AddressEvent *aep = (*q_it)->getAs<emorph::AddressEvent>(); //Getting each event from the Queue
                 q.pop_front();
                 if(!aep) continue; //If AER is not received continue
-                else num_events = num_events+1; //Keeping count of number of events processed
                 int channel = aep->getChannel(); //Processing events of both channel - LEFT and Right Eye
 
 
                 //NOTE this is the new implementation with single event history buffer
                 event_history.updateList(*aep); //Single event history buffer that stores both left and right eye information
 
-
                     //NOTE : Sensor X and Y are reversed
                     pos_x = aep->getY();
                     pos_y = aep->getX();
 
-
                     //std::cout<< "Processing Event at "<<"Channel: "<<channel<< " X : "<< pos_x <<" Y : "<< pos_y << std::endl; //Debug code
-
 
                     //Time stamp of the recent event
                     event_time = unwrap (aep->getStamp());
@@ -566,7 +415,7 @@ int main(int argc, char *argv[])
                     theta_vector_it = theta_vector.begin();
                     theta_index = 0;
 
-                    for(; theta_vector_it != theta_vector.end() ; ){
+                    for(; theta_vector_it != theta_vector.end() ; ){ //Processing for each theta
 
                         theta = *theta_vector_it;
                         //std::cout<<"Processing for Theta : " << theta<<std::endl;//Debug Code
@@ -577,7 +426,6 @@ int main(int argc, char *argv[])
                         std::fill_n(final_convolution_even,number_phases,0);
                         std::fill_n(final_convolution_odd,number_phases,0);
                         std::fill_n(final_convolution,number_phases,0);
-
 
                         //Energy Response of Quadrature pair, Even and Odd filters - Simple Binocular Cell Response
                         disparity_vector_it = disparity_vector.begin();
@@ -592,7 +440,7 @@ int main(int argc, char *argv[])
 
                             //std::cout << "Final Convolution EVEN and ODD : " << final_convolution_even[t] << " " << final_convolution_odd[t] << std::endl; //Debug Code
 
-                            final_convolution[t] = (final_convolution_even[t]*final_convolution_even[t]) + (final_convolution_odd[t] * final_convolution_odd[t]);
+                            final_convolution[t] = (final_convolution_even[t]*final_convolution_even[t]) + (final_convolution_odd[t] * final_convolution_odd[t]); //Binocular Energy Computation
                             std::cout << theta_index << " " << *disparity_vector_it << " " << final_convolution[t] << std::endl ; //Debug Code
 
                             binocular_enery_theta.push_back(final_convolution[t]);
@@ -607,13 +455,12 @@ int main(int argc, char *argv[])
                         //double energy_sum =std::accumulate(binocular_enery_theta.begin(),binocular_enery_theta.end(),eta); //Check the effects of eta value
                         //std::cout << "Energy Sum : " << energy_sum<<std::endl;//Debug Code
 
-                        binocular_enery_theta_it = binocular_enery_theta.begin();
+                        binocular_enery_theta_it = binocular_enery_theta.begin(); //The size should be 8 for single phase
                         disparity_vector_it = disparity_vector.begin();
                         double phase_sum = 0; //Local variable
                         double energy_sum = 0;
                         for(int t=0; t < number_phases ; ){
 
-                            //Check the exact values accessed from the vectors
                             //std::cout << "Disparity value : " << *disparity_vector_it << std::endl; //Debug Code
 
                             energy_sum = energy_sum + *binocular_enery_theta_it;
@@ -628,15 +475,15 @@ int main(int argc, char *argv[])
                         }
 
                         //std::cout <<"Energy sum along all phases : " << phase_sum << std::endl;//Debug Code
-                        phase_sum = phase_sum/energy_sum; //Normalizing
+                        //phase_sum = phase_sum/energy_sum; //Normalizing
                         //std::cout << phase_sum << std:: endl;
                         //std::cout << "Disparity Estimation Theta along all phase : " << phase_sum << std::endl; //Debug Code
 
-                        disparity_est_theta.push_back(phase_sum); //This is Complex  Binocular Cell response along all phases at each direction
+                        disparity_est_theta.push_back(energy_sum); //This is Complex  Binocular Cell response along all phases at each direction
 
                         //std::cout << std::endl; //Debug Code
 
-                        binocular_enery_theta.clear(); //Clearing the binocular energy vector of each theta
+                        //binocular_enery_theta.clear(); //Clearing the binocular energy vector of each theta
                         ++theta_vector_it;
                         ++theta_index;
 
@@ -646,10 +493,9 @@ int main(int argc, char *argv[])
 
                     //std::cout << "Number of events processed : " << num_events << std::endl; //Debug Code
                     //Calling Disparity Estimation Function - Should be called with all the directions taking into account
-                    disparity_estimation();
+                    disparity_estimation(pos_x,pos_y);
 
-                    //motionHypothesis(pos_x,pos_y);
-
+                    
         }//End of event queue loop
 
 
@@ -662,55 +508,45 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-
-/*void motionHypothesis(int &x,int &y){
+//Final Disparity Estimation
+void disparity_estimation(int &x,int &y){
 
 
     //std::cout << "Motion Estimation..."<<std::endl;//Debug Code
     //Code for single motion hypothesis generation
 
 
-            //Velocity components set to zero
-            double Ux = 0;
-            double Uy = 0 ;
+            //Disparity components set to zero
+            double Dx = 0;
+            double Dy = 0 ;
 
             theta_vector_it = theta_vector.begin();
-            convolution_it = convolution.begin();
+            disparity_est_theta_it = disparity_est_theta.begin();
             theta_index = 0;
             //std::cout << "Convolution value after filtering : " << final_convolution << endl; //Debug Code
+
 
             for(; theta_vector_it != theta_vector.end() - 1 ; ){//Summing up motion estimation along all directons
 
                 //std::cout << "Theta value : " << *theta_vector_it<< std::endl; //Debug Code
 
-                Ux = Ux + ( *convolution_it  *  cos( *theta_vector_it ) )  ;
-                Uy = Uy - ( *convolution_it  *  sin( *theta_vector_it ) ) ;
+                Dx = Dx + ( *disparity_est_theta_it   *  cos( *theta_vector_it ) )  ;
+                Dy = Dy - ( *disparity_est_theta_it   *  sin( *theta_vector_it ) ) ;
 
                 //std::cout << "Velocity Components Ux : " << Ux << " Uy : " << Uy << std::endl; //Debug Code
 
-                ++convolution_it;
+                ++disparity_est_theta_it ;
                 ++theta_vector_it;
                 ++theta_index;
 
             }//End of theta loop
 
-            //std::cout <<" "<<x<<" "<<y <<" " << Ux << " " << Uy << std::endl;//Debug Code
+            std::cout <<" "<<x<<" "<<y <<" " << Dx << " " << Dy << std::endl;//Debug Code
 
-            if(ffile.is_open()){
-
-                ffile << x<<" "<<y <<" " << Ux << " " << Uy << "\n";
-
-            }
-            else {std::cout<<"Unable to open the flow text file to write!!!"<<std::endl;}
-
-            ffile.close();
-
-
-            convolution.clear();
-            //Calling quiver plot function
-            //quiver_plot(x,y,Ux,Uy);
+            //Clearing the disparity estimation vector
+            disparity_est_theta.clear();
 
 
 
-    }*/
 
+    }

@@ -31,7 +31,6 @@ public:
     bool disp;
     int x;
     int y;
-    int polarity;
     int channel;
 
     std::list<double> timeStampList[128][128]; //TODO use the global macro definition
@@ -50,11 +49,6 @@ public:
     //Display list size
     void display();
 
-
-
-
 };
-
-
 
 #endif // EVENTHISTORYBUFFER_HPP
